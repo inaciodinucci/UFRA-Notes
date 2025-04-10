@@ -114,13 +114,7 @@ Este projeto está licenciado sob a [Licença MIT](LICENSE).
 
 ## 👥 Equipe
 
-- [Seu Nome](https://github.com/seu-usuario) - Desenvolvedor
-
-## 📞 Contato
-
-Para mais informações sobre o projeto, entre em contato:
-
-- Email: seuemail@example.com
+- [Dinucci](https://github.com/inaciodinucci) - Desenvolvedor
 
 ## 🔗 Links Úteis
 
