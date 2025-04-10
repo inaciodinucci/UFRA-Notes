@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaChartBar, FaStickyNote, FaBrain, FaUser, FaSignOutAlt, FaBars } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
@@ -168,8 +168,22 @@ const Copyright = styled.p`
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Verificar se o usuário está autenticado
+  useEffect(() => {
+    if (!isAuthenticated) {
+      console.log("Usuário não autenticado, redirecionando para login");
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Se não estiver autenticado, nem renderizar o layout
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

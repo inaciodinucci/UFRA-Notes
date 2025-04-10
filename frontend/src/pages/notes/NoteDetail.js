@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaArrowLeft, FaCalendarAlt, FaEdit, FaSave, FaTrash, FaPlus, FaCheck, FaTrophy, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaCalendarAlt, FaEdit, FaSave, FaTrash, FaPlus, FaCheck, FaTrophy, FaTimes, FaImage } from 'react-icons/fa';
 import { useNoteContext } from '../../context/NoteContext';
+import ReactMarkdown from 'react-markdown';
+import { useDropzone } from 'react-dropzone';
 
 const Container = styled.div`
   display: flex;
@@ -50,7 +52,8 @@ const Title = styled.h1`
 `;
 
 const NoteContainer = styled.div`
-  background-color: ${({ theme }) => theme.colors.backgroundDark};
+  background-color: ${({ theme, completed }) => 
+    completed ? `rgba(0, 250, 220, 0.05)` : theme.colors.backgroundDark};
   border: 1px solid ${({ theme }) => theme.colors.border};
   padding: ${({ theme }) => theme.spacing.lg};
   position: relative;
@@ -76,6 +79,14 @@ const NoteContainer = styled.div`
     border-bottom: 2px solid ${({ theme }) => theme.colors.primary};
     border-right: 2px solid ${({ theme }) => theme.colors.primary};
   }
+`;
+
+const CompletedBadge = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #00dc82;
+  font-size: 1.5rem;
 `;
 
 const NoteHeader = styled.div`
@@ -107,9 +118,105 @@ const NoteContent = styled.div`
   margin-top: ${({ theme }) => theme.spacing.md};
   width: 100%;
   min-height: 300px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
   
   p {
     margin-bottom: ${({ theme }) => theme.spacing.md};
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+  
+  /* Force break for very long content without spaces */
+  p, div, span, li {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    -ms-word-break: break-all;
+    hyphens: auto;
+  }
+  
+  /* Better image handling */
+  img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    border-radius: 4px;
+    display: block;
+    margin: ${({ theme }) => theme.spacing.md} 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    
+    /* Make images resizable */
+    resize: both;
+    overflow: hidden;
+    
+    /* Limit height to prevent extremely tall images */
+    max-height: 80vh;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: ${({ theme }) => theme.colors.primary};
+    margin-top: ${({ theme }) => theme.spacing.lg};
+    margin-bottom: ${({ theme }) => theme.spacing.sm};
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.borderDark};
+    padding-bottom: ${({ theme }) => theme.spacing.xs};
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.3rem;
+  }
+  
+  ul, ol {
+    margin-left: ${({ theme }) => theme.spacing.lg};
+    margin-bottom: ${({ theme }) => theme.spacing.md};
+  }
+  
+  li {
+    margin-bottom: ${({ theme }) => theme.spacing.xs};
+  }
+  
+  blockquote {
+    border-left: 3px solid ${({ theme }) => theme.colors.primary};
+    padding-left: ${({ theme }) => theme.spacing.md};
+    margin-left: ${({ theme }) => theme.spacing.md};
+    color: ${({ theme }) => theme.colors.textDark};
+    font-style: italic;
+  }
+  
+  code {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+  }
+  
+  pre code {
+    display: block;
+    padding: ${({ theme }) => theme.spacing.md};
+    overflow-x: auto;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+  
+  a {
+    color: ${({ theme }) => theme.colors.accent};
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 
@@ -353,104 +460,389 @@ const RemoveChecklistButton = styled.button`
   }
 `;
 
+// Add this style for the Markdown wrapper
+const MarkdownWrapper = styled.div`
+  width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+`;
+
+// Add new styled components for image handling
+const ImageDropZone = styled.div`
+  border: 2px dashed ${({ theme, isDragActive }) => 
+    isDragActive ? theme.colors.primary : theme.colors.border};
+  border-radius: 4px;
+  padding: ${({ theme }) => theme.spacing.md};
+  text-align: center;
+  color: ${({ theme, isDragActive }) => 
+    isDragActive ? theme.colors.primary : theme.colors.textDark};
+  background-color: ${({ theme, isDragActive }) => 
+    isDragActive ? 'rgba(0, 250, 220, 0.05)' : 'transparent'};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  transition: all 0.2s ease;
+  cursor: pointer;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+    background-color: rgba(0, 250, 220, 0.05);
+  }
+`;
+
+// Fix the ImageContainer, NoteImage, and ImageToolbar components to prevent ESLint warnings
+/* These components are used for image handling but not directly referenced in JSX.
+   We're exporting them to avoid ESLint warnings. They're used by the dropzone functionality. */
+export const ImageContainer = styled.div`
+  position: relative;
+  margin: ${({ theme }) => theme.spacing.md} 0;
+  display: inline-block;
+  max-width: 100%;
+`;
+
+export const NoteImage = styled.img`
+  max-width: 100%;
+  height: auto;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+  cursor: move;
+  resize: both;
+  
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+export const ImageToolbar = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  padding: 4px;
+`;
+
+const ImageToolButton = styled.button`
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px;
+  
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 const NoteDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getNote, createNote, updateNote, deleteNote } = useNoteContext();
+  const location = useLocation();
+  const { getNote, updateNote, deleteNote, createNote } = useNoteContext();
+  
+  console.log("NoteDetail component rendered with id:", id);
+  
+  const passedNoteData = location.state?.note;
   
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(id === 'new');
-  const [editedContent, setEditedContent] = useState('');
+  const [isEditing, setIsEditing] = useState(id === 'new'); // Auto-edit for new notes
   const [editedTitle, setEditedTitle] = useState('');
-  const [newTaskText, setNewTaskText] = useState('');
+  const [editedContent, setEditedContent] = useState('');
+  const [tasks, setTasks] = useState([]);
+  const [hasCheckboxes, setHasCheckboxes] = useState(false);
+  const [allChecked, setAllChecked] = useState(false);
   const [showNewTaskInput, setShowNewTaskInput] = useState(false);
+  const [newTaskText, setNewTaskText] = useState('');
+  const [xpValue, setXpValue] = useState(5);
   const [xpGained, setXpGained] = useState(0);
+  const [showXpGained, setShowXpGained] = useState(false);
+  const [error, setError] = useState(null);
+  const [images, setImages] = useState([]);
+  const [showImageDropZone, setShowImageDropZone] = useState(false);
   
-  // Load note data
-  useEffect(() => {
-    const loadNote = async () => {
-      try {
-        setLoading(true);
-        
-        if (id === 'new') {
-          // Creating a new note
-          const newNote = {
-            id: 'new',
-            title: 'Nova Nota',
-            content: '',
-            createdAt: new Date().toISOString(),
-            tasks: [],
-            xp_value: 5,
-            has_checkboxes: false,
-            all_checked: false
-          };
-          setNote(newNote);
-          setEditedTitle(newNote.title);
-          setEditedContent(newNote.content);
-        } else {
-          // Load existing note
-          const existingNote = getNote(id);
-          if (existingNote) {
-            setNote(existingNote);
-            setEditedTitle(existingNote.title);
-            setEditedContent(existingNote.content);
-          } else {
-            // Note not found, redirect to notes list
-            navigate('/notas');
+  // Handle image drop
+  const onDrop = useCallback(acceptedFiles => {
+    // Process each dropped file
+    acceptedFiles.forEach(file => {
+      if (!file.type.startsWith('image/')) {
+        console.error('File is not an image:', file.type);
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        // Create an image element to get dimensions and potentially resize
+        const img = new Image();
+        img.onload = () => {
+          // Create a canvas to resize the image
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // If image is larger than 1200px, scale it down to reduce file size
+          const maxWidth = 1200;
+          const maxHeight = 1200;
+          
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.floor(width * ratio);
+            height = Math.floor(height * ratio);
           }
-        }
-      } catch (error) {
-        console.error('Error loading note:', error);
-      } finally {
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw the resized image on the canvas
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Get the resized image data at lower quality to reduce file size
+          const resizedImageData = canvas.toDataURL(file.type, 0.7);
+          
+          const newImage = {
+            id: Date.now().toString(),
+            src: resizedImageData,
+            width: width,
+            height: height,
+            filename: file.name
+          };
+          
+          // Add image to state
+          setImages(prevImages => [...prevImages, newImage]);
+          
+          // Add image markdown to content with custom class for resizing
+          const imageMarkdown = `![${file.name}](${resizedImageData})\n\n`;
+          setEditedContent(prev => prev + imageMarkdown);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    // Hide the drop zone after upload
+    setShowImageDropZone(false);
+  }, []);
+  
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.bmp', '.webp']
+    }
+  });
+  
+  // Handle loading notes on mount
+  useEffect(() => {
+    console.log("NoteDetail carregando nota com ID:", id);
+    
+    setLoading(true);
+    
+    if (id === 'new') {
+      // Initialize a new note with empty content
+      const newEmptyNote = {
+        id: 'temp-new',
+        title: '', // Empty title - will use placeholder
+        content: '', // Empty content - no default content
+        tasks: [],
+        has_checkboxes: false,
+        all_checked: false,
+        xp_value: 5,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      setNote(newEmptyNote);
+      setEditedTitle(newEmptyNote.title);
+      setEditedContent(newEmptyNote.content);
+      setIsEditing(true); // Auto-enable editing for new notes
+      setLoading(false);
+    } else {
+      const currentNote = getNote(id);
+      
+      if (currentNote) {
+        console.log("Nota encontrada:", currentNote);
+        setNote(currentNote);
+        setEditedTitle(currentNote.title);
+        setEditedContent(currentNote.content);
+        setHasCheckboxes(!!currentNote.has_checkboxes);
+        setAllChecked(!!currentNote.all_checked);
+        setTasks(currentNote.tasks || []);
+        setXpValue(currentNote.xp_value || 5);
         setLoading(false);
+      } else {
+        console.error(`Nota com ID ${id} não encontrada`);
+        alert(`Nota com ID ${id} não encontrada. Redirecionando para a lista de notas.`);
+        navigate('/notas');
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+  
+  // Also, let's add a useEffect hook to handle the case when a new note is created directly
+  useEffect(() => {
+    // If we've just created a note and got redirected to it, start in edit mode
+    if (note && !loading && note.id !== 'new' && note.id !== 'temp-new') {
+      // Check if this note was just created (within last minute)
+      const justCreated = new Date().getTime() - new Date(note.createdAt).getTime() < 60000;
+      
+      if (justCreated) {
+        setIsEditing(true);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note, loading]);
+  
+  // Add a useEffect for handling image resizing
+  useEffect(() => {
+    // Function to make images resizable
+    const makeImagesResizable = () => {
+      if (!isEditing) {
+        setTimeout(() => {
+          const noteImages = document.querySelectorAll('.note-content img');
+          
+          noteImages.forEach(img => {
+            // Set image styles
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+            img.style.resize = 'both';
+            img.style.overflow = 'hidden';
+            img.style.maxHeight = '80vh';
+            img.style.display = 'block';
+            img.style.border = '1px solid #30444e';
+            img.style.borderRadius = '4px';
+            img.style.margin = '16px 0';
+            img.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+            
+            // Make sure images have proper cursors when being resized
+            img.addEventListener('mousedown', (e) => {
+              const rect = img.getBoundingClientRect();
+              const isBottomRight = 
+                e.clientX > rect.right - 10 && 
+                e.clientY > rect.bottom - 10;
+              
+              img.style.cursor = isBottomRight ? 'nwse-resize' : 'move';
+            });
+          });
+        }, 100);
       }
     };
     
-    loadNote();
-  }, [id, getNote, navigate]);
+    makeImagesResizable();
+  }, [note, isEditing, editedContent]);
+  
+  // Focus input when in edit mode for new note
+  useEffect(() => {
+    if (isEditing && id === 'new') {
+      // Add a small delay to ensure the input is rendered
+      const timer = setTimeout(() => {
+        const titleInput = document.querySelector('input[placeholder="Título"]');
+        if (titleInput) {
+          titleInput.focus();
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing, id]);
   
   const toggleTaskCompletion = (taskId) => {
-    setNote(prevNote => ({
-      ...prevNote,
-      tasks: prevNote.tasks.map(task => 
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    }));
+    // Create updated tasks array
+    const updatedTasks = tasks.map(task => 
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    
+    // Check if all tasks are completed
+    const allCompleted = updatedTasks.length > 0 && 
+      updatedTasks.every(task => task.completed);
+    
+    // Update local state
+    setTasks(updatedTasks);
+    setHasCheckboxes(updatedTasks.length > 0);
+    setAllChecked(allCompleted);
+    
+    // Update in storage if not a new note
+    if (id !== 'new' && note) {
+      try {
+        console.log("Updating note after task completion toggle:", {
+          ...note,
+          tasks: updatedTasks,
+          has_checkboxes: updatedTasks.length > 0,
+          all_checked: allCompleted
+        });
+        updateNote(id, {
+          ...note,
+          tasks: updatedTasks,
+          has_checkboxes: updatedTasks.length > 0,
+          all_checked: allCompleted
+        });
+      } catch (error) {
+        console.error("Error updating task completion status:", error);
+      }
+    }
   };
   
   const handleSave = async () => {
     try {
-      // Prepare updated note data
-      const updatedNoteData = {
-        ...note,
-        title: editedTitle,
-        content: editedContent
+      console.log(`Salvando nota com ID: "${id}"`);
+      
+      // Use "Nova Nota" as default title if empty
+      const finalTitle = editedTitle.trim() || "Nova Nota";
+      
+      // Prepare basic note data
+      const noteData = {
+        title: finalTitle,
+        content: editedContent,
+        tasks: tasks || [],
+        updatedAt: new Date().toISOString()
       };
       
-      if (id === 'new') {
-        // Create new note
-        const createdNote = await createNote(updatedNoteData);
-        // Navigate back to notes list
-        navigate('/notas');
-      } else {
-        // Update existing note
-        await updateNote(id, updatedNoteData);
-        // Update local state
-        setNote(updatedNoteData);
-        setIsEditing(false);
-      }
+      console.log("Atualizando nota com dados:", noteData);
       
-      // Simulate XP gain
-      setXpGained(2);
-      setTimeout(() => setXpGained(0), 3000);
+      // Update note
+      try {
+        const updatedNote = await updateNote(id, {
+          ...note,
+          ...noteData
+        });
+        
+        if (updatedNote) {
+          console.log("Nota atualizada com sucesso:", updatedNote);
+          
+          // Update local state
+          setNote(updatedNote);
+          setEditedTitle(updatedNote.title);
+          setEditedContent(updatedNote.content);
+          setIsEditing(false);
+          
+          alert("Nota atualizada com sucesso!");
+        } else {
+          throw new Error("Falha ao atualizar nota");
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar nota:", error);
+        alert(`Erro ao atualizar nota: ${error.message}`);
+      }
     } catch (error) {
-      console.error('Error saving note:', error);
+      console.error("Erro no handleSave:", error);
+      alert("Erro ao salvar nota. Tente novamente.");
+    }
+  };
+  
+  // Handle key press for task input
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && newTaskText.trim()) {
+      e.preventDefault();
+      handleAddTask();
     }
   };
   
   const handleAddTask = () => {
-    if (!newTaskText.trim()) return;
+    if (!newTaskText.trim()) {
+      return;
+    }
     
     const newTask = {
       id: Date.now().toString(),
@@ -458,25 +850,40 @@ const NoteDetail = () => {
       completed: false
     };
     
-    const updatedNote = {
-      ...note,
-      tasks: [...note.tasks, newTask],
-      has_checkboxes: true
-    };
+    // Make sure the tasks array exists
+    const currentTasks = tasks || [];
     
-    setNote(updatedNote);
+    const updatedTasks = [...currentTasks, newTask];
     
-    // Update in storage if not a new note
+    // Update in storage immediately
     if (id !== 'new') {
-      updateNote(id, updatedNote);
+      try {
+        updateNote(id, {
+          ...note,
+          tasks: updatedTasks,
+          has_checkboxes: true
+        }).then(updated => {
+          setNote(updated);
+          setTasks(updated.tasks);
+          setHasCheckboxes(true);
+        });
+      } catch (error) {
+        console.error('Failed to update note with new task:', error);
+      }
+    } else {
+      setNote({
+        ...note,
+        tasks: updatedTasks,
+        has_checkboxes: true
+      });
+      setTasks(updatedTasks);
     }
     
     setNewTaskText('');
-    setShowNewTaskInput(false);
   };
   
   const handleRemoveTask = (taskId) => {
-    const updatedTasks = note.tasks.filter(task => task.id !== taskId);
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
     const updatedNote = {
       ...note,
       tasks: updatedTasks,
@@ -510,7 +917,7 @@ const NoteDetail = () => {
     const updatedNote = {
       ...note,
       all_checked: true,
-      tasks: note.tasks.map(task => ({ ...task, completed: true }))
+      tasks: tasks.map(task => ({ ...task, completed: true }))
     };
     
     setNote(updatedNote);
@@ -521,7 +928,7 @@ const NoteDetail = () => {
     }
     
     // Simulate XP gain
-    setXpGained(note.xp_value);
+    setXpGained(xpValue);
     setTimeout(() => setXpGained(0), 3000);
   };
   
@@ -534,6 +941,11 @@ const NoteDetail = () => {
     } catch (error) {
       console.error('Error deleting note:', error);
     }
+  };
+
+  // Add functions for image handling
+  const toggleImageDropZone = () => {
+    setShowImageDropZone(prev => !prev);
   };
 
   if (loading) {
@@ -561,18 +973,24 @@ const NoteDetail = () => {
         <FaArrowLeft /> Voltar para Notas
       </BackLink>
 
-      <Title>{id === 'new' ? 'Nova Nota' : `Detalhes da Nota #${id}`}</Title>
+      <Title>{id === 'new' ? 'Nova Nota' : note.title || `Nota #${id}`}</Title>
 
-      <NoteContainer>
+      <NoteContainer completed={note.all_checked}>
+        {note.all_checked && (
+          <CompletedBadge>
+            <FaCheck />
+          </CompletedBadge>
+        )}
         <NoteHeader>
           {isEditing ? (
             <TitleInput 
               value={editedTitle}
               onChange={(e) => setEditedTitle(e.target.value)}
-              placeholder="Título da nota"
+              placeholder="Título"
+              autoFocus={id === 'new'}
             />
           ) : (
-            <NoteTitle>{note.title}</NoteTitle>
+            <NoteTitle>{note.title || "Nova Nota"}</NoteTitle>
           )}
           
           {!isEditing && (
@@ -582,16 +1000,40 @@ const NoteDetail = () => {
           )}
         </NoteHeader>
         
+        {isEditing && (
+          <div>
+            {showImageDropZone ? (
+              <ImageDropZone {...getRootProps()} isDragActive={isDragActive}>
+                <input {...getInputProps()} />
+                {
+                  isDragActive ?
+                    <p>Solte as imagens aqui...</p> :
+                    <p>Arraste e solte imagens aqui, ou clique para selecionar</p>
+                }
+              </ImageDropZone>
+            ) : (
+              <Button 
+                style={{ marginBottom: '20px' }} 
+                onClick={toggleImageDropZone}
+              >
+                <FaImage /> Adicionar Imagem
+              </Button>
+            )}
+          </div>
+        )}
+        
         {isEditing ? (
           <NoteTextArea 
             value={editedContent}
             onChange={(e) => setEditedContent(e.target.value)}
-            placeholder="Comece a escrever aqui..."
-            autoFocus
+            placeholder="Escreva aqui"
+            autoFocus={id === 'new' && editedTitle !== ''}
           />
         ) : (
-          <NoteContent>
-            <p>{note.content}</p>
+          <NoteContent className="note-content">
+            <MarkdownWrapper>
+              <ReactMarkdown breaks>{note.content || ''}</ReactMarkdown>
+            </MarkdownWrapper>
           </NoteContent>
         )}
         
@@ -599,64 +1041,77 @@ const NoteDetail = () => {
           <FaTrophy /> Valor de XP: {note.xp_value} {xpGained > 0 && `(+${xpGained} XP ganho!)`}
         </XpValue>
         
-        {note.has_checkboxes && (
+        {note.has_checkboxes && note.tasks && note.tasks.length > 0 && (
           <TaskSection>
             <TaskTitle>Tarefas</TaskTitle>
             <TaskList>
               {note.tasks.map(task => (
-                <TaskItem key={task.id}>
+                <TaskItem key={`task-${task.id}`}>
                   <input 
                     type="checkbox" 
                     id={`task-${task.id}`}
-                    checked={task.completed}
+                    checked={task.completed || false}
                     onChange={() => toggleTaskCompletion(task.id)}
                   />
                   <label htmlFor={`task-${task.id}`}>{task.text}</label>
-                  <RemoveButton 
-                    onClick={() => handleRemoveTask(task.id)}
-                    title="Remover tarefa"
-                  >
-                    <FaTimes />
-                  </RemoveButton>
+                  {!isEditing && (
+                    <RemoveButton 
+                      onClick={() => handleRemoveTask(task.id)}
+                      title="Remover tarefa"
+                    >
+                      <FaTimes />
+                    </RemoveButton>
+                  )}
                 </TaskItem>
               ))}
+            </TaskList>
+            
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <CompleteButton 
+                onClick={handleCompleteNote} 
+                disabled={note.all_checked}
+                style={{ marginRight: 'auto' }}
+              >
+                <FaCheck /> Finalizar Todas as Tarefas
+              </CompleteButton>
               
-              {showNewTaskInput && (
-                <div>
+              <RemoveChecklistButton onClick={handleRemoveAllTasks}>
+                <FaTimes /> Remover Checklist
+              </RemoveChecklistButton>
+            </div>
+          </TaskSection>
+        )}
+        
+        {!note.all_checked && (
+          <div>
+            {showNewTaskInput ? (
+              <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+                <TaskTitle>Adicionar Tarefa</TaskTitle>
+                <form onSubmit={(e) => { e.preventDefault(); handleAddTask(); }}>
                   <NewTaskInput
                     type="text"
                     placeholder="Digite uma nova tarefa..."
                     value={newTaskText}
                     onChange={(e) => setNewTaskText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+                    onKeyDown={handleKeyPress}
+                    autoFocus
                   />
-                  <Button onClick={handleAddTask}>
-                    <FaPlus /> Adicionar
-                  </Button>
-                </div>
-              )}
-            </TaskList>
-            
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-              {!showNewTaskInput && (
-                <AddChecklistButton onClick={() => setShowNewTaskInput(true)}>
-                  <FaPlus /> Adicionar Checklist
-                </AddChecklistButton>
-              )}
-              
-              {note.tasks.length > 0 && (
-                <RemoveChecklistButton onClick={handleRemoveAllTasks}>
-                  <FaTimes /> Remover Checklist
-                </RemoveChecklistButton>
-              )}
-            </div>
-          </TaskSection>
-        )}
-        
-        {!note.has_checkboxes && !showNewTaskInput && (
-          <AddChecklistButton onClick={() => setShowNewTaskInput(true)}>
-            <FaPlus /> Adicionar Checklist
-          </AddChecklistButton>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <Button type="submit">
+                      <FaPlus /> Adicionar
+                    </Button>
+                    <Button type="button" onClick={() => setShowNewTaskInput(false)}>
+                      <FaTimes /> Cancelar
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <AddChecklistButton onClick={() => setShowNewTaskInput(true)} style={{ marginTop: '20px' }}>
+                <FaPlus /> Adicionar {note.has_checkboxes ? 'Mais Tarefas' : 'Checklist'}
+              </AddChecklistButton>
+            )}
+          </div>
         )}
         
         <ActionButtons>
@@ -668,12 +1123,6 @@ const NoteDetail = () => {
             <Button onClick={() => setIsEditing(true)}>
               <FaEdit /> Editar
             </Button>
-          )}
-          
-          {note.has_checkboxes && (
-            <CompleteButton onClick={handleCompleteNote} disabled={note.all_checked}>
-              <FaCheck /> {note.all_checked ? 'Completado' : 'Completar Nota'}
-            </CompleteButton>
           )}
           
           <Button danger onClick={handleDelete}>

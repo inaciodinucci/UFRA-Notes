@@ -14,9 +14,9 @@ UFRA Notes é um sistema de gerenciamento de notas que incorpora elementos de ga
 
 - ✅ Criação e gerenciamento de notas
 - 📝 Editor de texto com suporte a checklists
-- 🎮 Sistema de gamificação com XP e níveis
-- 🔄 Sincronização de dados em tempo real
-- 🧠 Mapa mental para visualização das conexões entre notas
+- 🎮 Sistema de gamificação com XP e níveis __(Em progresso...)__
+- 🔄 Sincronização de dados em tempo real 
+- 🧠 Mapa mental para visualização das conexões entre notas __(Em progresso...)__
 - 📱 Interface responsiva e amigável
 - 🔒 Sistema de autenticação seguro
 
@@ -46,8 +46,8 @@ UFRA Notes é um sistema de gerenciamento de notas que incorpora elementos de ga
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/Ufra-Notes.git
-   cd Ufra-Notes
+   git clone https://github.com/inaciodinucci/UFRA-Notes.git
+   cd UFRA-Notes
    ```
 
 2. Execute o script de instalação:
@@ -114,13 +114,7 @@ Este projeto está licenciado sob a [Licença MIT](LICENSE).
 
 ## 👥 Equipe
 
-- [Seu Nome](https://github.com/seu-usuario) - Desenvolvedor
-
-## 📞 Contato
-
-Para mais informações sobre o projeto, entre em contato:
-
-- Email: seuemail@example.com
+- [Dinucci](https://github.com/inaciodinucci) - Desenvolvedor
 
 ## 🔗 Links Úteis
 

@@ -151,7 +151,12 @@ const UserAvatar = styled(Link)`
 `;
 
 const Header = ({ toggleSidebar, sidebarOpen }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
+  
+  // Se não estiver autenticado, não exibir o cabeçalho
+  if (!isAuthenticated) {
+    return null;
+  }
   
   return (
     <HeaderContainer>

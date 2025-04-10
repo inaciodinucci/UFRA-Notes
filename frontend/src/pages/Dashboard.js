@@ -179,7 +179,7 @@ const Dashboard = () => {
         </Card>
         
         <Card>
-          <CardTitle>Status do Personagem</CardTitle>
+          <CardTitle>Status do Usuário</CardTitle>
           <StatGrid>
             <StatLabel>Nível:</StatLabel>
             <StatValue>1</StatValue>

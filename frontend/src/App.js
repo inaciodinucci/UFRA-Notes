@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { NoteProvider } from './context/NoteContext';
 
@@ -32,11 +32,43 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Redireciona usuários autenticados da página de login para o dashboard
+const RedirectIfAuthenticated = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
 const App = () => {
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+  
+  // Efeito para redirecionar para login quando não autenticado
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login' && currentPath !== '/cadastrar') {
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [isAuthenticated, loading, navigate]);
+  
   return (
     <Routes>
       {/* Auth routes */}
-      <Route element={<AuthLayout />}>
+      <Route element={
+        <RedirectIfAuthenticated>
+          <AuthLayout />
+        </RedirectIfAuthenticated>
+      }>
         <Route path="/login" element={<Login />} />
         <Route path="/cadastrar" element={<Register />} />
       </Route>
@@ -51,13 +83,22 @@ const App = () => {
       }>
         <Route path="/" element={<Dashboard />} />
         <Route path="/notas" element={<Notes />} />
+        <Route path="/notas/new" element={<NoteDetail />} />
         <Route path="/notas/:id" element={<NoteDetail />} />
         <Route path="/mapa-mental" element={<MindMap />} />
         <Route path="/perfil" element={<Profile />} />
       </Route>
       
-      {/* Fallback route */}
-      <Route path="*" element={<NotFound />} />
+      {/* Rota padrão - redireciona para login se não autenticado, senão para dashboard */}
+      <Route path="*" element={
+        loading ? (
+          <div>Carregando...</div>
+        ) : isAuthenticated ? (
+          <NotFound />
+        ) : (
+          <Navigate to="/login" replace />
+        )
+      } />
     </Routes>
   );
 };

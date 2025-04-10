@@ -12,10 +12,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken') || null);
   const [refreshToken, setRefreshToken] = useState(localStorage.getItem('refreshToken') || null);
+  const [localUserId, setLocalUserId] = useState(localStorage.getItem('localUserId') || null);
 
   // Initial auth check on app load
   useEffect(() => {
     const checkAuth = async () => {
+      // Ensure we have a local user ID for localStorage
+      if (!localUserId) {
+        const newLocalId = 'user_' + Date.now();
+        localStorage.setItem('localUserId', newLocalId);
+        setLocalUserId(newLocalId);
+        console.log("Created new localUserId:", newLocalId);
+      }
+      
       if (accessToken) {
         try {
           // Verify token and get user data
@@ -36,11 +45,14 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         }
       } else {
+        // Não criar mais usuário convidado
+        setUser(null);
         setLoading(false);
       }
     };
 
     checkAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Set auth header for all requests when token changes
@@ -124,15 +136,20 @@ export const AuthProvider = ({ children }) => {
   const getUserProfile = async () => {
     try {
       const response = await api.get('/api/users/me/');
-      setUser(response.data);
-      return response.data;
+      const userData = { 
+        ...response.data,
+        localId: localUserId // Ensure we always have a consistent ID for localStorage
+      };
+      setUser(userData);
+      return userData;
     } catch (error) {
       console.error('Get user profile failed', error);
       throw error;
     }
   };
 
-  // Check if the token is expired
+  // Check if the token is expired (for future use)
+  // eslint-disable-next-line no-unused-vars
   const isTokenExpired = (token) => {
     if (!token) return true;
     try {
@@ -152,7 +169,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     refreshAccessToken,
     getUserProfile,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !user.isGuest, // Não considerar usuário convidado como autenticado
     accessToken,
     refreshToken,
   };

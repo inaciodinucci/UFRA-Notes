@@ -1,36 +1,52 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
+
+const Container = styled.div`
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+`;
+
+// Hidden reset button for debugging
+const DebugReset = styled.button`
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  opacity: 0.2;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: ${({ theme }) => theme.colors.textDark};
+  cursor: pointer;
+  
+  &:hover {
+    opacity: 0.8;
+    color: ${({ theme }) => theme.colors.danger};
+  }
+`;
 
 const NotFound = () => {
+  const handleResetApp = () => {
+    if (window.confirm('ATENÇÃO: Isto vai limpar TODOS os dados locais do aplicativo. Continuar?')) {
+      console.log('Resetting localStorage data...');
+      localStorage.clear();
+      window.location.href = '/';
+    }
+  };
+  
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: '70vh', 
-      textAlign: 'center' 
-    }}>
-      <h1 style={{ fontSize: '72px', margin: '0', color: '#333' }}>404</h1>
-      <h2 style={{ marginTop: '20px', color: '#555' }}>Página Não Encontrada</h2>
-      <p style={{ marginTop: '10px', maxWidth: '500px', color: '#777' }}>
-        A página que você está procurando não existe ou foi movida.
-      </p>
-      <Link 
-        to="/" 
-        style={{ 
-          marginTop: '30px', 
-          backgroundColor: '#4CAF50', 
-          color: 'white', 
-          padding: '10px 20px', 
-          borderRadius: '4px', 
-          textDecoration: 'none',
-          fontWeight: 'bold'
-        }}
-      >
-        Voltar para a Página Inicial
-      </Link>
-    </div>
+    <Container>
+      <h1>404</h1>
+      <h2>Página não encontrada</h2>
+      <p>A página que você está tentando acessar não existe.</p>
+      <Link to="/">Voltar para a página inicial</Link>
+      
+      <DebugReset onClick={handleResetApp}>🔄 Reset App Data</DebugReset>
+    </Container>
   );
 };
 
