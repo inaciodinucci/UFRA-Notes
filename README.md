@@ -47,7 +47,7 @@ UFRA Notes é um sistema de gerenciamento de notas que incorpora elementos de ga
 1. Clone o repositório:
    ```bash
    git clone https://github.com/inaciodinucci/UFRA-Notes.git
-   cd Ufra-Notes
+   cd UFRA-Notes
    ```
 
 2. Execute o script de instalação:
