@@ -14,9 +14,9 @@ UFRA Notes é um sistema de gerenciamento de notas que incorpora elementos de ga
 
 - ✅ Criação e gerenciamento de notas
 - 📝 Editor de texto com suporte a checklists
-- 🎮 Sistema de gamificação com XP e níveis
-- 🔄 Sincronização de dados em tempo real
-- 🧠 Mapa mental para visualização das conexões entre notas
+- 🎮 Sistema de gamificação com XP e níveis __(Em progresso...)__
+- 🔄 Sincronização de dados em tempo real 
+- 🧠 Mapa mental para visualização das conexões entre notas __(Em progresso...)__
 - 📱 Interface responsiva e amigável
 - 🔒 Sistema de autenticação seguro
 
