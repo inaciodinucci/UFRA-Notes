@@ -33,7 +33,7 @@ UFRA Notes é um sistema de gerenciamento de notas que incorpora elementos de ga
 - Django REST Framework
 - MySQL
 - JWT Authentication
-
+ 
 ## 🛠️ Instalação e Configuração
 
 ### Pré-requisitos
