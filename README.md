@@ -95,7 +95,7 @@ Ufra-Notes/
 ## 📸 Capturas de Tela
 
 ### Dashboard
-A tela principal do sistema mostra um resumo das atividades do usuário, incluindo estatísticas de nível, XP e atributos RPG.
+A tela principal do sistema mostra um resumo das atividades do usuário..
 
 <div align="center">
   <img src="screenshots/image.png" alt="Dashboard - UFRA Notes" width="800px" />
@@ -103,7 +103,7 @@ A tela principal do sistema mostra um resumo das atividades do usuário, incluin
 </div>
 
 ### Página de Notas
-Interface para visualizar e gerenciar todas as notas do usuário, com design futurista e tema cyberpunk.
+Interface para visualizar e gerenciar todas as notas do usuário.
 
 <div align="center">
   <img src="screenshots/image copy.png" alt="Página de Notas - UFRA Notes" width="800px" />
@@ -111,11 +111,11 @@ Interface para visualizar e gerenciar todas as notas do usuário, com design fut
 </div>
 
 ### Editor de Notas
-Editor completo para criar e editar notas, com suporte a checklists, imagens e sistema de XP.
+Editor completo para criar e editar notas, com suporte a checklists.
 
 <div align="center">
   <img src="screenshots/image copy 2.png" alt="Editor de Notas - UFRA Notes" width="800px" />
-  <p><em>Editor de notas com funcionalidades de texto, checklist e elementos RPG</em></p>
+  <p><em>Editor de notas com funcionalidades de texto</em></p>
 </div>
 
 ### Interface Adicional
@@ -127,7 +127,7 @@ Mais uma visão da interface do sistema mostrando a navegação e elementos visu
 </div>
 
 ### Página de Login
-Interface de autenticação com design cyberpunk e tema futurista.
+Interface de autenticação 
 
 <div align="center">
   <img src="screenshots/image copy 4.png" alt="Página de Login - UFRA Notes" width="800px" />
