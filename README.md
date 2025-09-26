@@ -12,19 +12,18 @@ UFRA Notes é um sistema de gerenciamento de notas que incorpora elementos de ga
 
 ### Principais Funcionalidades
 
-- ✅ Criação e gerenciamento de notas
-- 📝 Editor de texto com suporte a checklists
-- 🎮 Sistema de gamificação com XP e níveis __(Em progresso...)__
-- 🔄 Sincronização de dados em tempo real 
-- 🧠 Mapa mental para visualização das conexões entre notas __(Em progresso...)__
-- 📱 Interface responsiva e amigável
-- 🔒 Sistema de autenticação seguro
+-  Criação e gerenciamento de notas
+-  Editor de texto com suporte a checklists
+-  Sistema de gamificação com XP e níveis __(Em progresso...)__
+-  Sincronização de dados em tempo real 
+-  Mapa mental para visualização das conexões entre notas __(Em progresso...)__
+-  Interface responsiva e amigável
+-  Sistema de autenticação seguro
 
 ## 🚀 Tecnologias Utilizadas
 
 ### Frontend
 - React.js
-- Styled Components
 - React Router
 - Axios
 
@@ -87,6 +86,7 @@ Ufra-Notes/
 │   │   ├── services/    # Serviços e API
 │   │   └── ...
 ├── resources/         # Recursos estáticos
+├── screenshots/       # Capturas de tela do projeto
 ├── install.bat        # Script de instalação
 ├── setup_database.bat # Script de configuração do banco de dados
 └── start.bat          # Script para iniciar a aplicação
@@ -94,8 +94,44 @@ Ufra-Notes/
 
 ## 📸 Capturas de Tela
 
+### Dashboard
+A tela principal do sistema mostra um resumo das atividades do usuário, incluindo estatísticas de nível, XP e atributos RPG.
+
 <div align="center">
-  <p>Em breve...</p>
+  <img src="screenshots/image.png" alt="Dashboard - UFRA Notes" width="800px" />
+  <p><em>Dashboard principal com resumo do usuário e estatísticas RPG</em></p>
+</div>
+
+### Página de Notas
+Interface para visualizar e gerenciar todas as notas do usuário, com design futurista e tema cyberpunk.
+
+<div align="center">
+  <img src="screenshots/image copy.png" alt="Página de Notas - UFRA Notes" width="800px" />
+  <p><em>Lista de notas com cards organizados e botão para criar nova nota</em></p>
+</div>
+
+### Editor de Notas
+Editor completo para criar e editar notas, com suporte a checklists, imagens e sistema de XP.
+
+<div align="center">
+  <img src="screenshots/image copy 2.png" alt="Editor de Notas - UFRA Notes" width="800px" />
+  <p><em>Editor de notas com funcionalidades de texto, checklist e elementos RPG</em></p>
+</div>
+
+### Interface Adicional
+Mais uma visão da interface do sistema mostrando a navegação e elementos visuais.
+
+<div align="center">
+  <img src="screenshots/image copy 3.png" alt="Interface Adicional - UFRA Notes" width="800px" />
+  <p><em>Interface adicional mostrando navegação e elementos visuais do sistema</em></p>
+</div>
+
+### Página de Login
+Interface de autenticação com design cyberpunk e tema futurista.
+
+<div align="center">
+  <img src="screenshots/image copy 4.png" alt="Página de Login - UFRA Notes" width="800px" />
+  <p><em>Página de login com design cyberpunk e elementos neon</em></p>
 </div>
 
 ## 🤝 Contribuição

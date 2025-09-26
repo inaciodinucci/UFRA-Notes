@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from .models import Note, Checkbox, Connection, Activity
+from .models import Note, Checkbox, Connection
+from apps.activities.models import Activity
 from .serializers import (
     NoteSerializer, NoteDetailSerializer, CheckboxSerializer,
     ConnectionSerializer, ActivitySerializer

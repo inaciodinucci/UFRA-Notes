@@ -1,7 +1,7 @@
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono:wght@400&family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Fira+Code:wght@300;400;500;600;700&display=swap');
 
   *, *::before, *::after {
     box-sizing: border-box;
@@ -18,10 +18,13 @@ const GlobalStyle = createGlobalStyle`
     font-family: ${({ theme }) => theme.fonts.secondary};
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
-    line-height: 1.5;
+    line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     
     /* Cyber grid pattern for background */
     background-image: 
@@ -32,11 +35,12 @@ const GlobalStyle = createGlobalStyle`
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: ${({ theme }) => theme.fonts.primary};
+    font-family: ${({ theme }) => theme.fonts.display};
     color: ${({ theme }) => theme.colors.textLight};
     margin-bottom: ${({ theme }) => theme.spacing.md};
     text-shadow: ${({ theme }) => theme.boxShadow.sm};
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    font-weight: 600;
   }
 
   h1 {
@@ -57,9 +61,10 @@ const GlobalStyle = createGlobalStyle`
   }
 
   button, input, textarea, select {
-    font-family: ${({ theme }) => theme.fonts.primary};
+    font-family: ${({ theme }) => theme.fonts.secondary};
     font-size: 1rem;
-    color: inherit;
+    color: ${({ theme }) => theme.colors.text};
+    font-weight: 400;
   }
 
   button {
@@ -166,14 +171,22 @@ const GlobalStyle = createGlobalStyle`
 
   /* Input styling */
   input, textarea, select {
-    background-color: ${({ theme }) => theme.colors.backgroundDark};
+    background-color: ${({ theme }) => theme.colors.backgroundLight};
     border: 1px solid ${({ theme }) => theme.colors.border};
     padding: ${({ theme }) => theme.spacing.sm};
+    color: ${({ theme }) => theme.colors.text};
+    font-weight: 400;
+    
+    &::placeholder {
+      color: ${({ theme }) => theme.colors.textDark};
+      opacity: 0.8;
+    }
     
     &:focus {
       outline: none;
       border-color: ${({ theme }) => theme.colors.primary};
       box-shadow: ${({ theme }) => theme.boxShadow.sm};
+      background-color: ${({ theme }) => theme.colors.background};
     }
   }
 `;

@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Note, Checkbox, Connection, Activity
+from .models import Note, Checkbox, Connection
+from apps.activities.models import Activity
 
 
 class ActivitySerializer(serializers.ModelSerializer):

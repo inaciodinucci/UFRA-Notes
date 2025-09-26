@@ -240,11 +240,11 @@ const Login = () => {
           setLoading(true);
           
           try {
-            const success = await login(values.email, values.password);
-            if (success) {
+            const result = await login(values.email, values.password);
+            if (result.success) {
               navigate('/');
             } else {
-              setError('Credenciais inválidas. Tente novamente.');
+              setError(result.error || 'Credenciais inválidas. Tente novamente.');
             }
           } catch (err) {
             setError('Falha ao fazer login. Verifique suas credenciais ou tente novamente mais tarde.');

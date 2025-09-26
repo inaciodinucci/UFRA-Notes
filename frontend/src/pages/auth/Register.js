@@ -208,8 +208,8 @@ const Register = () => {
     setLoading(true);
     
     try {
-      const success = await register(formData);
-      if (success) {
+      const result = await register(formData);
+      if (result.success) {
         setRegistered(true);
       }
     } catch (err) {

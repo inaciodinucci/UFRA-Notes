@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      setLoading(true);
       const response = await api.post('/api/auth/jwt/create/', { email, password });
       const { access, refresh } = response.data;
       
@@ -85,31 +86,50 @@ export const AuthProvider = ({ children }) => {
       await getUserProfile();
       
       toast.success('Login realizado com sucesso!');
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('Login failed', error);
-      const errorMessage = error.response?.data?.detail || 'Falha ao fazer login. Verifique suas credenciais.';
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.non_field_errors?.[0] ||
+                          'Falha ao fazer login. Verifique suas credenciais.';
       toast.error(errorMessage);
-      return false;
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async (userData) => {
     try {
-      await api.post('/api/auth/users/', userData);
+      setLoading(true);
+      const response = await api.post('/api/auth/users/', userData);
       toast.success('Cadastro realizado com sucesso! Verifique seu email para ativar sua conta.');
-      return true;
+      return { success: true, data: response.data };
     } catch (error) {
       console.error('Registration failed', error);
       const errorData = error.response?.data;
+      let errorMessage = 'Falha ao realizar cadastro.';
+      
       if (errorData) {
-        Object.keys(errorData).forEach(key => {
-          toast.error(`${key}: ${errorData[key]}`);
-        });
-      } else {
-        toast.error('Falha ao realizar cadastro.');
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.non_field_errors) {
+          errorMessage = errorData.non_field_errors[0];
+        } else {
+          // Handle field-specific errors
+          const fieldErrors = Object.keys(errorData).map(key => 
+            `${key}: ${Array.isArray(errorData[key]) ? errorData[key][0] : errorData[key]}`
+          ).join(', ');
+          errorMessage = fieldErrors;
+        }
       }
-      return false;
+      
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
     }
   };
 
